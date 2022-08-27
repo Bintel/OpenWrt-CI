@@ -1,0 +1,75 @@
+# 
+# Copyright (C) 2019 P3TERX <https://p3terx.com>
+# Copyright (C) 2020 KFERMercer <KFER.Mercer@gmail.com>
+# 
+# Based on KFERMercer's script
+# <https://github.com/KFERMercer/OpenWrt-CI>
+#
+
+name: OpenWrt-CI-rac2v1k
+
+on:
+  workflow_dispatch:
+
+env:
+  PLATFORM: rac2v1k
+  TZ: Asia/Shanghai
+
+jobs:
+
+  build:
+
+    name: Build OpenWrt firmware
+
+    runs-on: ubuntu-latest
+
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: master
+
+      - name: Prepare compile environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          chmod +x ./github-actions.sh
+          ./github-actions.sh
+
+      - name: Compile firmware
+        run: |
+          chmod +x ./compile.sh
+          ./compile.sh $PLATFORM
+
+      - name: Prepare artifact
+        run: |
+          cd ./openwrt/
+          mkdir -p ./artifact/firmware
+          mkdir -p ./artifact/package
+          mkdir -p ./artifact/buildinfo
+          rm -rf $(find ./bin/targets/ -type d -name "packages")
+          cp -rf $(find ./bin/targets/ -type f -name "openwrt*") ./artifact/firmware/
+          cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
+          cp -rf $(find ./bin/targets/ -type f -name "*.buildinfo" -o -name "*.manifest") ./artifact/buildinfo/
+          cp -f ./$PLATFORM.config ./artifact/buildinfo/
+
+      - name: Deliver buildinfo
+        uses: actions/upload-artifact@v3
+        with:
+          name: OpenWrt_buildinfo
+          path: ./openwrt/artifact/buildinfo/
+
+      - name: Deliver package
+        uses: actions/upload-artifact@v3
+        with:
+          name: OpenWrt_package
+          path: ./openwrt/artifact/package/
+
+      - name: Deliver firmware
+        uses: actions/upload-artifact@v3
+        with:
+          name: OpenWrt_firmware
+          path: ./openwrt/artifact/firmware/
