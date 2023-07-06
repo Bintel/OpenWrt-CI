@@ -6,13 +6,13 @@
 # <https://github.com/KFERMercer/OpenWrt-CI>
 #
 
-name: OpenWrt-CI-ipq60xx
+name: OpenWrt-CI-360v6
 
 on:
   workflow_dispatch:
 
 env:
-  PLATFORM: ipq60xx
+  PLATFORM: 360v6
   TZ: Asia/Shanghai
 
 jobs:
