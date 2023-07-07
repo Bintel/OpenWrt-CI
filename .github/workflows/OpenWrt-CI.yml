@@ -6,13 +6,18 @@
 # <https://github.com/KFERMercer/OpenWrt-CI>
 #
 
-name: OpenWrt-CI-ax6
+name: OpenWrt-CI
 
 on:
   workflow_dispatch:
+    inputs:
+      TARGET:
+        description: 'Target'
+        required: true
+
+run-name: "${{ inputs.TARGET }}"
 
 env:
-  PLATFORM: ax6
   TZ: Asia/Shanghai
 
 jobs:
@@ -42,7 +47,7 @@ jobs:
       - name: Compile firmware
         run: |
           chmod +x ./compile.sh
-          ./compile.sh $PLATFORM
+          ./compile.sh ${{ inputs.TARGET }}
 
       - name: Prepare artifact
         run: |
@@ -54,7 +59,7 @@ jobs:
           cp -rf $(find ./bin/targets/ -type f -name "openwrt*") ./artifact/firmware/
           cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
           cp -rf $(find ./bin/targets/ -type f -name "*.buildinfo" -o -name "*.manifest") ./artifact/buildinfo/
-          cp -f ./$PLATFORM.config ./artifact/buildinfo/
+          cp -f ./${{ inputs.TARGET }}.config ./artifact/buildinfo/
 
       - name: Deliver buildinfo
         uses: actions/upload-artifact@v3
