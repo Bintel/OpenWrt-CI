@@ -12,10 +12,17 @@ on:
   workflow_dispatch:
     inputs:
       TARGET:
-        description: 'Target'
-        required: true
+        description: Target
+        type: choice
+        options:
+        - ax6
+        - ax6-nowifi
+        - r619ac
+        - rac2v1k
+        - rm2100
+        - x86-64
 
-run-name: "${{ inputs.TARGET }}"
+run-name: ${{ inputs.TARGET }}
 
 env:
   TZ: Asia/Shanghai
@@ -24,7 +31,7 @@ jobs:
 
   build:
 
-    name: Build OpenWrt firmware
+    name: Build OpenWrt Firmware
 
     runs-on: ubuntu-22.04
 
@@ -33,7 +40,7 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@main
         with:
           ref: master
 
@@ -52,29 +59,32 @@ jobs:
       - name: Prepare artifact
         run: |
           cd ./openwrt/
+          mkdir -p ./artifact/buildinfo
           mkdir -p ./artifact/firmware
           mkdir -p ./artifact/package
-          mkdir -p ./artifact/buildinfo
-          rm -rf $(find ./bin/targets/ -type d -name "packages")
-          cp -rf $(find ./bin/targets/ -type f -name "openwrt*") ./artifact/firmware/
-          cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
+
           cp -rf $(find ./bin/targets/ -type f -name "*.buildinfo" -o -name "*.manifest") ./artifact/buildinfo/
           cp -f ./${{ inputs.TARGET }}.config ./artifact/buildinfo/
 
-      - name: Deliver buildinfo
-        uses: actions/upload-artifact@v3
+          rm -rf $(find ./bin/targets/ -type d -name "packages")
+          cp -rf $(find ./bin/targets/ -type f -name "openwrt*") ./artifact/firmware/
+
+          cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
+
+      - name: Deliver Buildinfo
+        uses: actions/upload-artifact@main
         with:
-          name: OpenWrt_buildinfo
+          name: "${{ inputs.TARGET }}-Buildinfo"
           path: ./openwrt/artifact/buildinfo/
 
-      - name: Deliver package
-        uses: actions/upload-artifact@v3
+      - name: Deliver Firmware
+        uses: actions/upload-artifact@main
         with:
-          name: OpenWrt_package
-          path: ./openwrt/artifact/package/
-
-      - name: Deliver firmware
-        uses: actions/upload-artifact@v3
-        with:
-          name: OpenWrt_firmware
+          name: "${{ inputs.TARGET }}-Firmware"
           path: ./openwrt/artifact/firmware/
+
+      - name: Deliver Package
+        uses: actions/upload-artifact@main
+        with:
+          name: "${{ inputs.TARGET }}-Package"
+          path: ./openwrt/artifact/package/
