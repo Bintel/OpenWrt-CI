@@ -1,0 +1,81 @@
+# 
+# Copyright (C) 2019 P3TERX <https://p3terx.com>
+# Copyright (C) 2020 KFERMercer <KFER.Mercer@gmail.com>
+# 
+# Based on KFERMercer's script
+# <https://github.com/KFERMercer/OpenWrt-CI>
+#
+
+name: OpenWrt-CI-Package
+
+on:
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+
+  build:
+
+    name: Build OpenWrt Package
+
+    runs-on: ubuntu-22.04
+
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          ref: master
+
+      - name: Prepare compile environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          chmod +x ./github-actions.sh
+          ./github-actions.sh
+
+      - name: Compile package
+        run: |
+          df -h
+          git clone --depth 1 https://github.com/coolsnowwolf/lede openwrt
+          cd ./openwrt
+          sed -i 's/CPU_TYPE:=cortex-a53/CPU_TYPE:=cortex-a53+crypto/' ./target/linux/ipq807x/Makefile
+          echo "src-git helloworld https://github.com/fw876/helloworld" >> ./feeds.conf.default
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+          touch ./target.config
+          echo "CONFIG_TARGET_ipq807x=y" >> ./target.config
+          echo "CONFIG_TARGET_ipq807x_generic=y" >> ./target.config
+          cat ../luci-app.config ./target.config > ./.config
+          make defconfig
+          make download -j$(nproc) || make download -j1 V=s
+          make -j$(nproc) || make -j1 V=s
+          mv ./.config ./package.config
+          cd ..
+
+      - name: Prepare artifact
+        run: |
+          cd ./openwrt/
+          mkdir -p ./artifact/buildinfo
+          mkdir -p ./artifact/package
+
+          cp -rf $(find ./bin/targets/ -type f -name "*.buildinfo" -o -name "*.manifest") ./artifact/buildinfo/
+          cp -f ./package.config ./artifact/buildinfo/
+
+          cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
+
+      - name: Deliver Buildinfo
+        uses: actions/upload-artifact@main
+        with:
+          name: Buildinfo
+          path: ./openwrt/artifact/buildinfo/
+
+      - name: Deliver Package
+        uses: actions/upload-artifact@main
+        with:
+          name: Package
+          path: ./openwrt/artifact/package/
