@@ -45,6 +45,7 @@ jobs:
           cd ./openwrt
           sed -i 's/CPU_TYPE:=cortex-a53/CPU_TYPE:=cortex-a53+crypto/' ./target/linux/ipq807x/Makefile
           echo "src-git helloworld https://github.com/fw876/helloworld" >> ./feeds.conf.default
+          echo "src-git ddnsgo https://github.com/sirpdboy/luci-app-ddns-go" >> ./feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
           touch ./target.config
