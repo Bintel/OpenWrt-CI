@@ -56,6 +56,7 @@ jobs:
           make -j$(nproc) || make -j1 V=s
           mv ./.config ./package.config
           cd ..
+          df -h
 
       - name: Prepare artifact
         run: |
