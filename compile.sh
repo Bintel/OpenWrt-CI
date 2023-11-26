@@ -26,7 +26,7 @@ Prepare()
     git clone --depth 1 https://github.com/coolsnowwolf/lede openwrt
     cd ./openwrt
     time Customize
-    echo "src-git helloworld https://github.com/fw876/helloworld" >> ./feeds.conf.default
+    echo "src-git helloworld https://github.com/fw876/helloworld;main" >> ./feeds.conf.default
     echo "src-git ddnsgo https://github.com/sirpdboy/luci-app-ddns-go" >> ./feeds.conf.default
     ./scripts/feeds update -a
     ./scripts/feeds install -a
