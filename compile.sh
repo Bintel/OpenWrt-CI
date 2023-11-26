@@ -46,6 +46,7 @@ Compile()
     cd ./openwrt
     cat ../luci-app.config ../targets/$platform.config > ./.config
     make defconfig
+    cat ./.config
     make download -j$(nproc) || make download -j1 V=s
     make -j$(nproc) || make -j1 V=s
     mv ./.config ./$platform.config
