@@ -48,8 +48,8 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
           touch ./target.config
-          echo "CONFIG_TARGET_ipq807x=y" >> ./target.config
-          echo "CONFIG_TARGET_ipq807x_generic=y" >> ./target.config
+          echo "CONFIG_TARGET_qualcommax=y" >> ./target.config
+          echo "CONFIG_TARGET_qualcommax_ipq807x=y" >> ./target.config
           cat ../luci-app.config ./target.config > ./.config
           make defconfig
           cat ./.config
